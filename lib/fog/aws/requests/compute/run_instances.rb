@@ -45,6 +45,10 @@ module Fog
         #   * 'SubnetId'<~String> - VPC option to specify subnet to launch instance into
         #   * 'UserData'<~String> -  Additional data to provide to booting instances
         #   * 'EbsOptimized'<~Boolean> - Whether the instance is optimized for EBS I/O
+        #   * 'NetworkInterface'<~Array> - array of hashes
+        #     * 'DeviceIndex'<~Integer> - Index of the device you're setting up
+        #     * 'AssociatePublicIpAddress'<~Boolean> - true or false NOTE this requires AWS API:2013-07-15 on instantiation
+        #     * 'SubnetId'<~String> - VPC option to specify subnet to configure this interface with, note you can't set the previous option with this one set.
         #
         # ==== Returns
         # * response<~Excon::Response>:
@@ -102,6 +106,13 @@ module Fog
           end
           if security_group_ids = options.delete('SecurityGroupId')
             options.merge!(Fog::AWS.indexed_param('SecurityGroupId', [*security_group_ids]))
+          end
+          if network_interface = options.delete('NetworkInterface')
+            network_interface.each_with_index do |mapping, index|
+              for key, value in mapping
+                options.merge!({ format("NetworkInterface.%d.#{key}", index) => value })
+              end
+            end
           end
           if options['UserData']
             options['UserData'] = Base64.encode64(options['UserData'])

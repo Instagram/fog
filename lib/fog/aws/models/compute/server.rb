@@ -14,7 +14,7 @@ module Fog
         attribute :ami_launch_index,         :aliases => 'amiLaunchIndex'
         attribute :availability_zone,        :aliases => 'availabilityZone'
         attribute :block_device_mapping,     :aliases => 'blockDeviceMapping'
-        attribute :network_interfaces,       :aliases => 'networkInterfaces'
+        attribute :network_interface,        :aliases => 'networkInterface'
         attribute :client_token,             :aliases => 'clientToken'
         attribute :dns_name,                 :aliases => 'dnsName'
         attribute :ebs_optimized,            :aliases => 'ebsOptimized'
@@ -154,6 +154,7 @@ module Fog
             'KernelId'                    => kernel_id,
             'KeyName'                     => key_name,
             'Monitoring.Enabled'          => monitoring,
+            'NetworkInterface'            => network_interface,
             'Placement.AvailabilityZone'  => availability_zone,
             'Placement.GroupName'         => placement_group,
             'Placement.Tenancy'           => tenancy,
@@ -170,7 +171,11 @@ module Fog
           # subnet & security group cannot co-exist. Attempting to specify
           # both subnet and groups will cause an error.  Instead please make
           # use of Security Group Ids when working in a VPC.
-          if subnet_id
+          # If a subnet_id is used in the network interface definition, 
+          # it cannot be used in the server definition, so this also
+          # checks for a network_interface config.
+
+          if subnet_id or network_interface
             options.delete('SecurityGroup')
           else
             options.delete('SubnetId')
